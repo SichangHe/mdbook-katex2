@@ -2,68 +2,17 @@ name: deploy
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
 
 jobs:
 
-  windows-binary:
-
-    runs-on: windows-latest
-
-    env:
-      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Install stable
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: x86_64-pc-windows-gnu # Not msvc because of quickjs-rs dependency
-        override: true
-
-    - name: Setup msys64 and mingw64
-      run: |
-        $Paths = "C:\msys64\mingw64\bin;C:\msys64\usr\bin"
-        echo "$Paths" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-        echo "CARGO_BUILD_TARGET=x86_64-pc-windows-gnu" >> $GITHUB_ENV
-
-    - name: Build mdbook-katex2
-      run: |
-        cargo build --release --target x86_64-pc-windows-gnu
-
-    - name: Strip mdbook-katex2
-      run: |
-        strip target/x86_64-pc-windows-gnu/release/mdbook-katex2.exe
-
-    - name: Get the version
-      shell: bash
-      id: tagName
-      run: |
-        VERSION=$(cargo pkgid | cut -d# -f2 | cut -d: -f2)
-        echo "::set-output name=version::$VERSION"
-
-    - name: Create zip
-      run: |
-        $ZIP_PREFIX = "mdbook-katex2-v${{ steps.tagName.outputs.version }}"
-        7z a "$ZIP_PREFIX-x86_64-pc-windows-gnu.zip" `
-             "./target/x86_64-pc-windows-gnu/release/mdbook-katex2.exe"
-
-    - name: Upload binary artifact
-      uses: actions/upload-artifact@v2
-      with:
-        path: mdbook-katex2-v${{ steps.tagName.outputs.version }}-x86_64-pc-windows-gnu.zip
-
-  linux-binaries:
+  linux-windows-binaries:
 
     strategy:
       matrix:
         target:
          - x86_64-unknown-linux-gnu
          - x86_64-unknown-linux-musl
+         - x86_64-pc-windows-gnu
 
     runs-on: ubuntu-latest
 
@@ -74,6 +23,11 @@ jobs:
       if: matrix.target == 'x86_64-unknown-linux-musl'
       run: |
         sudo apt-get install musl-tools
+
+    - name: Install mingw tools
+      if: matrix.target == 'x86_64-pc-windows-gnu'
+      run: |
+        sudo apt-get install mingw-w64 -y
 
     - name: Install ${{ matrix.target }} target
       uses: actions-rs/toolchain@v1
@@ -149,7 +103,7 @@ jobs:
 
   deploy:
 
-    needs: [windows-binary, linux-binaries, macos-binary]
+    needs: [linux-windows-binaries, macos-binary]
 
     runs-on: ubuntu-latest
 
