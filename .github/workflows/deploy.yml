@@ -25,15 +25,9 @@ jobs:
         target: x86_64-pc-windows-gnu # Not msvc because of quickjs-rs dependency
         override: true
 
-    - name: Setup msys64 and mingw64
-      run: |
-        $Paths = "C:\msys64\mingw64\bin;C:\msys64\usr\bin"
-        echo "$Paths" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-        echo "CARGO_BUILD_TARGET=x86_64-pc-windows-gnu" >> $GITHUB_ENV
-
     - name: Build mdbook-katex2
       run: |
-        cargo build --release --target x86_64-pc-windows-gnu
+        cargo build --release
 
     - name: Strip mdbook-katex2
       run: |
