@@ -1,3 +1,11 @@
+# Important Notice
+
+Use [`mdbook-katex`](https://github.com/lzanini/mdbook-katex) instead.
+
+This is because I am now maintaining the original `mdbook-katex` and it is more convenient for users to use that original crate.
+
+# README
+
 `mdbook-katex2` aims to be a maintained version of `mdbook-katex`, providing equivalent functionality.
 
 `mdbook-katex` is a preprocessor for [mdBook](https://github.com/rust-lang/mdBook), pre-rendering LaTex equations to HTML at build time. It allows for very fast page loading, compared to rendering equations in the browser.
